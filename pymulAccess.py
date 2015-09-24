@@ -16,9 +16,12 @@ class rConnect( threading.Thread ):
     def run (self):
         print "Connection from : ",self.deviceip_
         dutSession = SshConnect( self.deviceip_, self.username_, self.password_, self.enable_password_ )
-        dutSession.connect ()
+        dutSession.connect () 
+        seq = ( self.deviceip_, "txt" ) 
+        fname = '.'.join ( seq ) 
+        print fname 
         try :
-            fo = open ( "R1.txt", "r" )
+            fo = open ( fname, "r" )
             for line in fo :
                 dutSession.sendCmd(line)
         except IOError :
@@ -30,10 +33,15 @@ class rConnect( threading.Thread ):
 
 if __name__ == "__main__" :
     print "Main SART"
-    #t1 = Thread ( target = rConnect, args = ( "192.168.56.201","cisco","cisco","cisco" ))
-    #t2 = Thread ( target = rConnect, args = ( "192.168.56.202","cisco","cisco","cisco" ))
-    t1 = rConnect ( "192.168.56.201","cisco","cisco","cisco" )
-    t2 = rConnect ( "192.168.56.202","cisco","cisco","cisco" )
-    t1.start()
-    t2.start()
-    print "Main END"
+    c = 0
+    t = [ ]  
+    try :
+        fo = open ( "config.txt", "r" )
+        for line in fo :
+            l = line.split( ',' )
+            t.append( rConnect ( l[0],l[1],l[2],l[3].strip( '\n' ) ))
+            t[c].start()
+            c += 1 
+        print "Main END"
+    except IOError :
+        print "Require file is missing"
