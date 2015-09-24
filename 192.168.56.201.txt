@@ -1,0 +1,4 @@
+terminal length 0
+conf t
+interface fastEthernet 0/0
+description "This port is connected to Mgmt. Do not shutdown"
