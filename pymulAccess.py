@@ -1,7 +1,14 @@
 #!/usr/bin/python 
 
 import threading 
+import os
 from pyrconnect import SshConnect
+
+def checkPing ( ipadd ) :
+    ipadd_ = ipadd
+    response = os.system ( 'ping -c 2 ' + ipadd )
+    return response
+       
 
 class rConnect( threading.Thread ):
    
@@ -15,20 +22,24 @@ class rConnect( threading.Thread ):
     
     def run (self):
         print "Connection from : ",self.deviceip_
-        dutSession = SshConnect( self.deviceip_, self.username_, self.password_, self.enable_password_ )
-        dutSession.connect () 
-        seq = ( self.deviceip_, "txt" ) 
-        fname = '.'.join ( seq ) 
-        print fname 
-        try :
-            fo = open ( fname, "r" )
-            for line in fo :
-                dutSession.sendCmd(line)
-        except IOError :
-            print "Error in opening File "
+        response = checkPing ( self.deviceip_ )
+        print response
+        if response == 0 :
+            dutSession = SshConnect( self.deviceip_, self.username_, self.password_, self.enable_password_ )
+            dutSession.connect () 
+            seq = ( self.deviceip_, "txt" ) 
+            fname = '.'.join ( seq ) 
+            try :
+                fo = open ( fname, "r" )
+                for line in fo :
+                    dutSession.sendCmd(line)
+            except IOError :
+                    print "Error in opening File "
+            else :
+                print "Configuration done in the device",self.deviceip_
+                fo.closed
         else :
-            print "Configuration done in the device",self.deviceip_
-            fo.closed
+            print "Device ",self.deviceip_," is not reachable. Please fix the connection issue and retry configuration"
 
 
 if __name__ == "__main__" :
